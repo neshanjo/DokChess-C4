@@ -91,7 +91,7 @@ In Zukunft könnte durch Anbindung einer Endspieldatei auch für bekannte Endspi
 ## Komponenten (Component)
 
 ```plantuml
-@startuml
+@startuml dokchess-c4-component
 !theme C4Language_german from <C4/themes>
 !include <C4/C4_Component>
 
@@ -123,7 +123,7 @@ SHOW_FLOATING_LEGEND()
 ## Code
 
 ```plantuml
-@startuml
+@startuml dokchess-c4-code
 !theme plain
 skinparam classAttributeIconSize 0
 skinparam classFontStyle bold
@@ -196,7 +196,7 @@ Bewertung <|.r. ReineMaterialBewertung
 ## Dynamisches Zusammenspiel
 
 ```plantuml
-@startuml
+@startuml dockchess-c4-dynamic
 !theme C4Language_german from <C4/themes>
 !include <C4/C4_Dynamic>
 
@@ -230,7 +230,7 @@ SHOW_FLOATING_LEGEND()
 ## Deployment
 
 ```plantuml
-@startuml
+@startuml dockchess-c4-deployment
 !theme C4Language_german from <C4/themes>
 !include <C4/C4_Deployment>
 
