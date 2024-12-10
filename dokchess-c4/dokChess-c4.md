@@ -1,13 +1,26 @@
 <!-- markdownlint-disable MD036 -->
-# DokChess, C4-Sichten
+# DokChess, C4-Sichten <!-- omit in toc -->
 
-Software-Architektur-Sichten nach der [C4-Methode](https://c4model.com/) für die [DokChess-Schach-Engine](https://github.com/DokChess/dokchess).
+Software-Architektur-Sichten nach dem [C4-Modell](https://c4model.com/) für die [DokChess-Schach-Engine](https://github.com/DokChess/dokchess), erstellt von Johannes Schneider. Vielen Dank an Stefan Zörner für seine detaillierten und hilfreichen Kommentare!
 
-Stefan Zörner hat DokChess als Beispiel für eine Architekturdokumentation mit der [arc42-Vorlage](https://www.arc42.de/) konzipiert. Diese Dokumentation findet man [online](https://www.dokchess.de/) und auch in seinem [Buch](https://www.swadok.de/) "Softwarearchitekturen dokumentieren und kommunizieren: Entwürfe, Entscheidungen und Lösungen nachvollziehbar und wirkungsvoll festhalten".  Dieses Dokument soll die Dokumentation nicht ersetzen, sondern alternative Darstellungen (insbesondere der Diagramme) nach der C4-Methode liefern.
+## Inhalt <!-- omit in toc -->
 
-## Hinweise zur C4-Umsetzung
+- [Einleitung](#einleitung)
+- [Software-System (Context)](#software-system-context)
+- [Container](#container)
+- [Komponenten (Component)](#komponenten-component)
+- [Code](#code)
+- [Dynamisches Zusammenspiel (Dynamic Diagram)](#dynamisches-zusammenspiel-dynamic-diagram)
+- [Deployment (Deployment diagram)](#deployment-deployment-diagram)
+- [Lizenz dieses Dokuments](#lizenz-dieses-dokuments)
 
-Auf der C4-Webseite gibt es einen [Hinweis, wie man C4 mit arc42 kombinieren kann](https://c4model.com/diagrams/faq#can-we-combine-c4-and-arc42):
+## Einleitung
+
+Stefan Zörner hat DokChess als Beispiel für eine Architekturdokumentation mit der [arc42-Vorlage](https://www.arc42.de/) konzipiert. Diese Dokumentation findet man [online](https://www.dokchess.de/) und auch in seinem [Buch](https://www.swadok.de/) "Softwarearchitekturen dokumentieren und kommunizieren: Entwürfe, Entscheidungen und Lösungen nachvollziehbar und wirkungsvoll festhalten".
+
+Bei dem von Simon Brown entwickelten [C4-Modell](https://c4model.com/) werden Software-System über vier Abstraktionsebenen (Context, Container, Component, Code) beschrieben. Für jede Ebene gibt es einen entsprechenden Architektursichtentyp inklusive passender Elemente.
+
+Dieses Dokument liefert einen Vorschlag, wie man das DokChess-System über diese vier Abstraktionsebenen darstellen kann. Die hier vorgestellten Sichten kann man (alternativ oder ergänzend zu bestehenden Diagrammen) in einer Architekturdokumentation verwenden. So erklärt Simon Brown auf der C4-Webseite beispielsweise, [wie man C4 mit arc42 kombinieren kann](https://c4model.com/diagrams/faq#can-we-combine-c4-and-arc42):
 
 > Can we combine C4 and arc42? Yes, many teams do, and the C4 model is compatible with the arc42 documentation template as follows.
 >
@@ -16,24 +29,9 @@ Auf der C4-Webseite gibt es einen [Hinweis, wie man C4 mit arc42 kombinieren kan
 > - Building Block View (level 2) => Component diagram
 > - Building Block View (level 3) => Code (e.g. class) diagram
 
-Außerdem wird als [Container](https://c4model.com/abstractions/container) unter anderem auch das Dateisystem aufgelistet.
->
-> In real terms, a container is something like:
->
-> - ...
-> - File system: A full local file system or a portion of a larger networked file system (e.g. SAN, NAS, etc).
-> - ...
+Alternative Gliederungsvorschläge einer Softwarearchitekturdokumentation findet man in Simon Browns "[The Software Guidebook](https://leanpub.com/documenting-software-architecture)" oder auch in Form der [ADF-Architekturdokumentationsvorlage](https://github.com/architecture-decomposition-framework/adf-documentation-template).
 
-Da die Eröffnungsbibliothek kein von einem eigenständigen Team entwickeltes System ist, das für sich selbst als Prozess läuft und über ein (Netzwerk-)Protokoll mit DokChess kommuniziert, sondern eine Datei im "Polyglot Opening Book"-Format, welche bei Programmstart eingelesen wird, erfolgt keine Darstellung der Eröffnungsbibliothek auf oberster Ebene (Context), sondern erst auf zweiter Ebene (Container, Filesystem).
-
-Weiterhin stellt sich die Frage, wie die einzelnen Teile (Bausteine) der von DokChess klassifiziert werden sollten. Hier passt die Beschreibung auf der C4-Webseite zum Thema [Komponente](https://c4model.com/abstractions/component):
-
-> A component is a way to step up one level of abstraction from the code-level building blocks that you have in the programming language that you’re using. For example:
->
-> - Object-oriented programming languages (e.g. Java, C#, C++, etc): A component is made up of classes and interfaces.
-> - ...
-
-Das bedeutet jedoch, dass die detailliertere Beschreibung der einzelnen Teile der Engine (Suche und Bewertung) erst in der Code-Ebene dargestellt werden können, wenn man keine weiteren Abstraktionsebenen zum C4-Modell hinzufügen möchte.
+Man findet in diesem Dokument also **keine** komplette Architekturdokumentation des DokChess-Systems, sondern lediglich Diagramme, die man für eine Dokumentation verwenden kann, zusammen mit Hinweisen, warum die Diagramme so erstellt wurden. Wer Näheres über die genaue Funktionsweise von DokChess und die dahinterliegenden Designentscheidungen lernen möchte, findet dies [online](https://www.dokchess.de/) in der vorhandenen Dokumentation.
 
 ## Software-System (Context)
 
@@ -42,22 +40,31 @@ Das bedeutet jedoch, dass die detailliertere Beschreibung der einzelnen Teile de
 !theme C4Language_german from <C4/themes>
 !include <C4/C4_Context>
 
+AddRelTag("use", $textColor=$ARROW_FONT_COLOR, $lineColor=$ARROW_COLOR, $legendText="verwendet")
+
 Person(mensch, "Menschlicher Gegner", "Schachspieler am Computer")
 System_Ext(client, "XBoard-Client", "z.B. 'arena' unter Windows")
-System_Ext(computer, "Computergegner", "z.B. andere Engine, optional")
-System(dokchess, "DokChess", "Schachengine")
+System_Ext(computer, "Computergegner", "z.B. andere Engine, alternativ zu einem menschlichen Gegner")
+System(dokchess, "DokChess", "voll funktionsfähige Schachengine mit vollständiger Implementierung der FIDE-Schachregeln")
 
-Rel(mensch, client, "bedient", "Maus und Tastatur")
-Rel(client, dokchess, "kommuniziert Züge mit", "XBoard-Protokoll")
-Rel(computer, dokchess, "kommuniziert Züge mit", "XBoard-Protokoll")
+System_Ext(opening, "Eröffnungen", "Datenbank für Eröffnungen")
+System_Ext(endgame, "Endspiele", "Datenbank für Endspiele")
+
+Rel(mensch, client, "bedient", $tags="use")
+Rel(client, dokchess, "kommuniziert Züge mit", $tags="use")
+Rel(computer, dokchess, "kommuniziert Züge mit", $tags="use")
+Rel(dokchess, opening, "schlägt Eröffnungszüge nach in", $tags="use")
+Rel(dokchess, endgame, "schlägt Enspielzüge nach in", $tags="use")
 
 SHOW_FLOATING_LEGEND()
 @enduml
 ```
 
-*Abbildung: System-Kontext-Diagramm*
+*Abbildung: System-Kontext-Diagramm von DokChess*
 
-Wir zeigen hier auf oberster (abstraktester) Ebene, wie die DokChess-Engine in die Systemlandschaft eingebettet ist. Wichtiger Punkt: Der Benutzer kommuniziert nicht direkt mit DokChess, sondern über die Einbindung in einen XBoard-kompatiblen Client.
+Wir zeigen hier auf oberster (abstraktester) Ebene, wie die DokChess-Engine in die Systemlandschaft eingebettet ist. Wichtiger Punkt: Der Benutzer kommuniziert üblicherweise nicht direkt mit DokChess, sondern über die Einbindung in einen XBoard-kompatiblen Client.
+
+Dieses Diagramme ist eher fachlich als technisch ausgerichtet. Daher wurden für die Relationen keine spezifischen Technologie-Annotationen gewählt.
 
 ## Container
 
@@ -65,18 +72,24 @@ Wir zeigen hier auf oberster (abstraktester) Ebene, wie die DokChess-Engine in d
 @startuml dokchess-c4-container
 !theme C4Language_german from <C4/themes>
 !include <C4/C4_Container>
+AddBoundaryTag("ExtSystem", $bgColor="White", $borderColor="#999999", $fontColor="#999999", $borderStyle="dashed", $legendText="Systemgrenze (Externes System)")
+AddRelTag("use", $textColor=$ARROW_FONT_COLOR, $lineColor=$ARROW_COLOR, $legendText="verwendet")
 
 System_Ext(client, "XBoard-Client")
 
 System_Boundary(dokchess, "DokChess") {
     Container(engine, "DokChess Spiel-Engine")
-    Container_Ext(opening, "Eröffnungen", "Filesystem")
-    Container_Ext(endgame, "Endspiele", "nicht umgesetzt")
+}
+Boundary(openingSys, "Eröffnungen", "Externes System", $tags="ExtSystem") {
+    Container_Ext(opening, "Eröffnungsdatenbank", "Filesystem: Polyglot Opening Book")
+}
+Boundary(endgameSys, "Endspiele", "Externes System", $tags="ExtSystem") {
+    Container_Ext(endgame, "Endspieldatenbank", "nicht umgesetzt")
 }
 
-Rel_R(client, engine, "bindet ein", "XBoard-Protokoll: Standardein-/ausgabe")
-Rel(engine, opening, "schlägt Eröffnungszug nach in", "Polyglot Opening Book format")
-Rel(engine, endgame, "schlägt Endspielzug nach in", "nicht umgesetzt")
+Rel_R(client, engine, "bindet ein", "XBoard-Protokoll: Standardein-/ausgabe", $tags="use")
+Rel(engine, opening, "schlägt Eröffnungszug nach in", "Polyglot Opening Book format", $tags="use")
+Rel(engine, endgame, "schlägt Endspielzug nach in", "nicht umgesetzt", $tags="use")
 
 SHOW_FLOATING_LEGEND()
 @enduml
@@ -84,16 +97,32 @@ SHOW_FLOATING_LEGEND()
 
 *Abbildung: Funktionale Aufteilung des DokChess-Systems in Container*
 
-Die DokChess-Engine lädt Eröffnungen aus dem Dateisystem im "Polyglot Opening Book"-Format, um auf bekannte Eröffnungszüge mit dem optimalen Zug antworten zu können. Die Einbindung einer Eröffnungsdatei ist optional. Wird keine angegeben, berechnet die Engine selbst einen möglichst guten Antwortzug.
+Die DokChess-Engine lädt Eröffnungen aus einer Eröffnungsdatenbank, um auf bekannte Eröffnungszüge mit dem optimalen Zug antworten zu können. Die Einbindung einer solchen Datenbank ist optional. Wird keine angegeben, berechnet die Engine selbst einen möglichst guten Antwortzug.
 
-In Zukunft könnte durch Anbindung einer Endspieldatei auch für bekannte Endspielsituationen auf vorberechnete Züge geantwortet werden. Dies ist im jetzigen System noch nicht vorgesehen.
+In Zukunft könnte durch Anbindung einer Endspieldatenbank auch für bekannte Endspielsituationen mit optimalen Zügen geantwortet werden. Dies ist im jetzigen System noch nicht vorgesehen.
+
+Dieses Diagramm zeigt schon zwei wichtige technische Entscheidungen: Die Verwendung von XBoard als Kommunikationsprotokoll mit dem Client sowie das Polyglot-Opening-Book-Format für die Eröffnungsbibliotheken.
+
+Dass die Eröffnungsbibliothek kein von einem eigenständigen Team entwickeltes System (z.B. ein Datenbankserver) ist, das für sich selbst als Prozess läuft und über ein (Netzwerk-)Protokoll mit DokChess kommuniziert, sondern eine Datei im "Polyglot Opening Book"-Format, welche bei Programmstart eingelesen wird, ist letztlich eine Umsetzungsentscheidung, welche jedoch mit der Container-Darstellung kompatibel ist, da im C4-Modell als [Container](https://c4model.com/abstractions/container) unter anderem auch das Dateisystem aufgelistet.
+>
+> In real terms, a container is something like:
+>
+> - ...
+> - Database: A schema or database in a relational database management system, document store, graph database, etc such as MySQL, Microsoft SQL Server, Oracle Database, MongoDB, Riak, Cassandra, Neo4j, etc.
+> - ...
+> - File system: A full local file system or a portion of a larger networked file system (e.g. SAN, NAS, etc).
+> - ...
 
 ## Komponenten (Component)
+
+Als nächste Unterteilungsebene folgt die Komponentensicht. Hier kann man die in der arc42-Dokumentation vorhandene [Bausteinsicht der Ebene 1](https://www.dokchess.de/05_bausteinsicht/01_ebene_1/) ziemlich direkt in ein C4-Komponentendiagramm überführen und noch die Beschreibung der einzelnen Elemente hinzufügen.
 
 ```plantuml
 @startuml dokchess-c4-component
 !theme C4Language_german from <C4/themes>
 !include <C4/C4_Component>
+
+AddRelTag("use", $textColor=$ARROW_FONT_COLOR, $lineColor=$ARROW_COLOR, $legendText="verwendet")
 
 System_Ext(client, "XBoard-Client")
 
@@ -108,11 +137,11 @@ Rel_R(client, xboardProtocol, "Kommuniziert über das XBoard-Protokoll")
 
 Container_Ext(polyglot, "Eröffnungen", "Dateisystem: Polyglot Opening Book")
 
-Rel_R(xboardProtocol, rules, "Zug auf Gültigkeit überprüfen")
-Rel_D(xboardProtocol, engine, "Züge ermitteln und ausführen")
-Rel_R(engine, rules, "Zug auf Gültigkeit überprüfen")
-Rel(engine, openings, "Züge während der Eröffnungsphase finden")
-Rel(openings, polyglot, "Eröffnungen nachschlagen")
+Rel_R(xboardProtocol, rules, "Zug auf Gültigkeit überprüfen", $tags="use")
+Rel_D(xboardProtocol, engine, "Züge ermitteln und ausführen", $tags="use")
+Rel_R(engine, rules, "Zugkandidaten generieren, auf Spielende prüfen", $tags="use")
+Rel(engine, openings, "Züge während der Eröffnungsphase finden", $tags="use")
+Rel(openings, polyglot, "Eröffnungen nachschlagen", $tags="use")
 
 SHOW_FLOATING_LEGEND()
 @enduml
@@ -120,10 +149,58 @@ SHOW_FLOATING_LEGEND()
 
 *Abbildung: Funktionale Aufteilung der DokChess-Spiel-Engine*
 
-## Code
+Die einzelnen Komponenten werden im Code durch Klassen und Interfaces umgesetzt, was zur Beschreibung auf der C4-Webseite zum Thema [Komponente](https://c4model.com/abstractions/component) passt:
+
+> A component is a way to step up one level of abstraction from the code-level building blocks that you have in the programming language that you’re using. For example:
+>
+> - Object-oriented programming languages (e.g. Java, C#, C++, etc): A component is made up of classes and interfaces.
+> - ...
+
+Eine weitere, detailliertere Beschreibung einer Komponente erfolgt nun üblicherweise über die Code-Sicht, da C4 keine Unterteilung von Komponenten in Unterkomponenten vorsieht, siehe [Abbildung "A software system is made up of ..."](https://c4model.com/abstractions); zudem gibt es weder in der [C4-PlantUML-Bibliothek](https://github.com/plantuml-stdlib/C4-PlantUML) noch in Simon Browns [Structurizr](https://structurizr.com/) Tool-Support für Komponenten innerhalb von Komponenten.
+
+Der Autor dieses Dokuments hält es jedoch für eine sehr hilfreiche Zusatzinformation zum besseren Verständnis der DokChess-Engine, eine weitere Stufe in das System "hineinzoomen" zu können (Laufzeitsicht, Design), ohne bereits auf die Code-Ebene (Entwicklungszeitsicht, Implementierung) eingehen zu müssen. Daher wurde zusätzlich dieses Komponentendiagramm erstellt, welches der [Bausteinsicht der Ebene 2](https://www.dokchess.de/05_bausteinsicht/06_ebene_2_engine/) der arc42-Dokumentation entspricht und die Engine-Komponente näher beschreibt.
 
 ```plantuml
-@startuml dokchess-c4-code
+@startuml dokchess-c4-component-engine
+!theme C4Language_german from <C4/themes>
+!include <C4/C4_Component>
+
+left to right direction
+
+AddBoundaryTag("ComponentBoundary", $bgColor="White", $borderStyle="dashed", $fontColor="$SYSTEM_BG_COLOR", , $borderColor="$SYSTEM_BG_COLOR", $legendText="Komponenten-Gruppe") 
+AddRelTag("use", $textColor=$ARROW_FONT_COLOR, $lineColor=$ARROW_COLOR, $legendText="verwendet")
+
+Boundary(chessEngine, "Engine", $tags="ComponentBoundary") {
+    Component(engine, "Engine (Einstiegspunkt)", "", "Einstiegspunkt für die Ermittlung eines nächsten Zuges ausgehend von einer Spielsituation")
+    Component(search, "Zugsuche", "", "Ermittelt zu einer Stellung den unter bestimmten Bedingungen optimalen Zug")
+    Component(rate, "Stellungsbewertung", "", "Bewertet eine Stellung aus Sicht eines Spielers")
+}
+Component(openings, "Eröffnungen", "", "Stellt Züge aus der Eröffnungsliteratur zu einer Spielsituation bereit.")
+Component(rules, "Spielregeln", "", "Beinhaltet die Schachregeln und kann z.B. zu einer Stellung alle gültigen Züge ermitteln")
+
+Rel(engine, search, "Nächsten (möglichst) optimalen Zug berechnen", $tags="use")
+Rel(engine, openings, "Züge während der Eröffnungsphase finden", $tags="use")
+Rel(search, rate, "Stärke der Stellung nach (potentieller) Ausführung eines Zugs bewerten", $tags="use")
+Rel(search, rules, "Zug auf Gültigkeit überprüfen", $tags="use")
+
+SHOW_FLOATING_LEGEND()
+@enduml
+```
+
+*Abbildung: Funktionale Unterteilung der Engine*
+
+Wenn man diese hier dargestellte, weitere Zoomstufe vermeiden möchte, gibt es folgende Alternativen:
+
+- **Darstellung der Engine auf Code-Ebene (wie oben schon angesprochen)**. Damit muss man sich aber bereits um Implementierungsdetails kümmern, welche beim Design eines Systems vielleicht noch gar nicht feststehen oder sich auch gerne mal ändern können.
+- **Darstellung der Interna der Engine direkt schon im Komponentendiagramm "Funktionale Aufteilung der DokChess-Spiel-Engine"**. Dies macht das Komponentendiagramm weniger übersichtlich und impliziert, dass die Unterkomponenten der Engine (z.B. Zugsuche) dieselbe Wichtigkeit haben wie die Top-Level-Komponenten (z.B. Spielregeln).
+- **Darstellung der Komponenten aus dem Diagramm "Funktionale Aufteilung der DokChess-Spiel-Engine" als Container**. Indem man XBoard-Protokoll, Engine, Spielregeln und Eröffnungen bereits auf höherer Ebene als Container darstellt, hat man die Möglichkeit, diese Container auf der Komponenten-Ebene weiter zu zerlegen. Diese Aufteilung wäre inhaltlich für einen Leser/eine Leserin der Dokumentation gut nachvollziehbar, widerspricht aber der [Definition eines Containers](https://c4model.com/abstractions/container).
+
+## Code
+
+Simon Brown [empfiehlt](https://c4model.com/diagrams/code), Diagramme der Code-Ebene, wenn man sie überhaupt braucht, direkt aus dem Code generieren zu lassen. Beispielhaft sind hier einige der UML-Klassendiagramme der arc42-Dokumentation übernommen.
+
+```plantuml
+@startuml dokchess-c4-code-engine
 !theme plain
 skinparam classAttributeIconSize 0
 skinparam classFontStyle bold
@@ -146,24 +223,25 @@ class DefaultEngine {
     + ziehen(Zug)
     + schliessen()
 }
+@enduml
+```
 
-Engine <|-r- DefaultEngine
+*Abbildung: Umsetzung der Engine-Komponente im Code*
+
+```plantuml
+@startuml dokchess-c4-code-suche
+!theme plain
+skinparam classAttributeIconSize 0
+skinparam classFontStyle bold
+hide circle
+hide empty members
+hide empty methods
 
 interface Suche<<interface>> {
     + zugSuchen(Stellung, Observer<Zug>)
     + sucheAbbrechen()
     + schliessen()
 }
-
-interface Bewertung<<interface>> {
-    + AM_BESTEN: int
-    + AM_SCHLECHTESTEN: int
-    + AUSGEGLICHEN: int
-    + bewerteStellung(Stellung, Farbe): int
-}
-
-Engine -d-> Suche
-Engine -d-> Bewertung
 
 class MinimaxAlgorithmus {
     + setSpielregeln(Spielregeln)
@@ -182,6 +260,27 @@ class MinimaxParalleleSuche {
 Suche <|.r. MinimaxParalleleSuche
 MinimaxAlgorithmus <|-u- MinimaxParalleleSuche
 
+@enduml
+```
+
+*Abbildung: Umsetzung der Zugsuche-Komponente im Code*
+
+```plantuml
+@startuml dokchess-c4-code-bewertung
+!theme plain
+skinparam classAttributeIconSize 0
+skinparam classFontStyle bold
+hide circle
+hide empty members
+hide empty methods
+
+interface Bewertung<<interface>> {
+    + AM_BESTEN: int
+    + AM_SCHLECHTESTEN: int
+    + AUSGEGLICHEN: int
+    + bewerteStellung(Stellung, Farbe): int
+}
+
 class ReineMaterialBewertung {
     + bewerteStellung(Stellung, Farbe): int
     # figurenWert(Figur): int
@@ -191,9 +290,45 @@ Bewertung <|.r. ReineMaterialBewertung
 @enduml
 ```
 
-*Abbildung: Umsetzung der DokChess-Engine-Komponente im Code*
+*Abbildung: Umsetzung der Stellungsbewertung-Komponente im Code*
 
-## Dynamisches Zusammenspiel
+## Dynamisches Zusammenspiel (Dynamic Diagram)
+
+Es ist oft hilfreich, das dynamische Zusammenspiel von Einzelteilen eines Systems zu veranschaulichen. In der arc42-Vorlage findet man solche Diagramme im Kapitel Laufzeitsicht. Auch das C4-Modell sieht [Dynamische Diagramme](https://c4model.com/diagrams/dynamic) vor, die "sparsam verwendet werden sollten, um interessante/wiederkehrende Muster oder Funktionen zu zeigen, die eine komplizierte Reihe von Interaktionen erfordern." (übersetzt von der C4-Webseite).
+
+```plantuml
+@startuml dockchess-c4-sequence
+!theme C4Language_german from <C4/themes>
+!include <C4/C4_Sequence>
+
+System_Ext(c, "XBoard-Client")
+Component(x, "XBoard-Protokoll", "", "Realisiert die Kommunikation mit einem Client mit Hilfe des XBoard-Protokolls")
+Component(r, "Spielregeln", "", "Beinhaltet die Schachregeln und kann z.B. zu einer Stellung alle gültigen Züge ermitteln")
+Component(e, "Engine", "", "Beinhaltet die Ermittlung eines nächsten Zuges ausgehend von einer Spielsituation")
+Component(o, "Eröffnungen", "", "Stellt Züge aus der Eröffnungsliteratur zu einer Spielsituation bereit.")
+
+Rel(c, x, "'e2e4'")
+Rel(x, r, "liefereGueltigeZuege")
+Rel(r, x, ":Zug[]")
+Rel(x, e, "ziehen(e2-e4)")
+Rel(x, e, "ermittleDeinenZug")
+Rel(e, o, "liefereZug")
+Rel(o, e, ":null")
+Rel(e, r, "liefereGueltigeZuege")
+Rel(r, e, ":Zug[]")
+Rel(e, x, "Zug (e7-e5)")
+Rel(e, x, "Zug (b8-c6)")
+Rel(e, x, "fertig")
+Rel(x, e, "ziehen (b8-c6)")
+Rel(x, c, ":'move b8c6'")
+@enduml
+```
+
+*Abbildung: Beispielhaftes Zusammenspiel für eine Zugermittlung (Sequence-Diagramm)*
+
+Neben der bekannten Beschreibung als UML-Sequenz-Diagramm kann man Interaktion alternativ auch in einem an UML-Kommunikationsdiagramme angelehnten Stil beschreiben. Bei einer kleineren Anzahl an Interaktionen ist diese Darstellungsform besonders dann sehr hilfreich, wenn man die Komponenten an derselben Stelle wie im statischen Komponentendiagramm wiederfindet. 
+
+Der Vollständigkeit halber ist obiges Sequenzdiagramm hier noch als Kommunikationsdiagramm angefügt. Aufgrund der großen Anzahl von Interaktionen zwischen XBoard-Protokoll und Engine ist dieses konkrete Beispiel hier jedoch eher unübersichtlich.
 
 ```plantuml
 @startuml dockchess-c4-dynamic
@@ -225,9 +360,11 @@ SHOW_FLOATING_LEGEND()
 @enduml
 ```
 
-*Abbildung: Beispielhaftes Zusammenspiel für eine Zugermittlung*
+*Abbildung: Beispielhaftes Zusammenspiel für eine Zugermittlung (Dynamisches Diagramm)*
 
-## Deployment
+## Deployment (Deployment diagram)
+
+[Deployment-Diagramme](https://c4model.com/diagrams/deployment) können ergänzend zu den vier Diagrammtypen der C4-Abstraktionsebenen verwendet werden, um "zu veranschaulichen, wie Instanzen von Softwaresystemen und/oder Containern im statischen Modell auf die Infrastruktur in einer bestimmten Deyployment-Umgebung (z.B. Produktion, Staging, Entwicklung, etc.) bereitgestellt werden." (übersetzt von der C4-Webseite).
 
 ```plantuml
 @startuml dockchess-c4-deployment
@@ -256,3 +393,7 @@ SHOW_FLOATING_LEGEND()
 ```
 
 *Abbildung: Ausführung der DokChess-Engine auf einem Windows-PC*
+
+## Lizenz dieses Dokuments
+
+Das Copyright (C) 2024 liegt bei Johannes Schneider, der den Inhalt dieses Dokuments (Text und Abbildungen) unter der Lizenz [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.de) veröffentlicht.
