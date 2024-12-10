@@ -1,4 +1,4 @@
-# dokchess-c4
+# DokChess-C4
 
 Software-Architektur-Sichten nach dem [C4-Modell](https://c4model.com/) für die [DokChess-Schach-Engine](https://github.com/DokChess/dokchess), erstellt von Johannes Schneider.
 
